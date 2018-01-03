@@ -1,0 +1,1 @@
+cl /MD /O1 /Og /Os /GF trx2x.cpp DiskImage.cpp
