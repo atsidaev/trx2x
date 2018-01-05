@@ -1,23 +1,12 @@
-#include <iostream.h>         // for debug cout messages
+#include <iostream>         // for debug cout messages
+using namespace std;
 
 #include <fcntl.h>
-#include <io.h>
-#include <sys\stat.h>
-#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#ifdef __BORLANDC__             // for borland...
-   #include <mem.h>
-#else                           // for microsoft
-   #include <memory.h>
-#endif
-
-#include <windows.h>    // messagebox, inputbox
-
-//-----------------------------------------------------------------------------
 
 #include "DiskImage.h"
-
+#include "utils.h"
 
 #define ERR_OPEN        "Error: can't open source file"
 #define ERR_GETLEN      "Error: can't get file length!"
@@ -48,9 +37,9 @@ char fdicomment[] = "\r\nCreated by TRX2X converter\r\n(C)2002 Alex Makeev\r\nht
 #include "boot.ih"
 
 
-long CalcCRC32(long CRC, unsigned char Symbol)
+int32_t CalcCRC32(int32_t CRC, unsigned char Symbol)
 {
-   long temp;
+   int32_t temp;
    CRC ^= -1l ^ Symbol;
    for(int k = 8; k--;) 
       { temp = -(CRC & 1), CRC >>= 1, CRC ^= 0xEDB88320ul & temp; }
@@ -364,7 +353,7 @@ void TDiskImage::FlushImage()
    if(!Changed) return;
    if(FType==DIT_HOB) return;
 
-   int hfile = open((char*)FFileName, O_CREAT | O_RDWR | O_TRUNC | O_BINARY, _S_IREAD|_S_IWRITE);
+   int hfile = open((char*)FFileName, O_CREAT | O_RDWR | O_TRUNC | O_BINARY, 0666);
    if(hfile < 0)
    {
       ShowError(ERR_CANTWRITE);
@@ -386,18 +375,23 @@ void TDiskImage::Open(char *filename, bool ROnly)
 {
    FlushImage();
 
-   char ext[_MAX_EXT];
-   _splitpath(filename, NULL, NULL, NULL, ext);
-   strupr(ext);
    TDiskImageType typ = DIT_UNK;
-   if(!strcmp(ext, ".TRD")) typ = DIT_TRD;
-   if(!strcmp(ext, ".SCL")) typ = DIT_SCL;
-   if(!strcmp(ext, ".FDI")) typ = DIT_FDI;
-   if(!strcmp(ext, ".UDI")) typ = DIT_UDI;
-   if(!strcmp(ext, ".TD0")) typ = DIT_TD0;
-   if(!strcmp(ext, ".FDD")) typ = DIT_FDD;
-   if(!memcmp(ext, ".$", 2)) typ = DIT_HOB;
-   if(!memcmp(ext, ".!", 2)) typ = DIT_HOB;
+
+   char ext[MAX_EXT];
+   const char* ext_pos = get_extension(filename);
+   if (ext_pos) {
+      strncpy(ext, ext_pos, MAX_EXT);
+      make_uppercase(ext);
+      
+      if(!strcmp(ext, ".TRD")) typ = DIT_TRD;
+      if(!strcmp(ext, ".SCL")) typ = DIT_SCL;
+      if(!strcmp(ext, ".FDI")) typ = DIT_FDI;
+      if(!strcmp(ext, ".UDI")) typ = DIT_UDI;
+      if(!strcmp(ext, ".TD0")) typ = DIT_TD0;
+      if(!strcmp(ext, ".FDD")) typ = DIT_FDD;
+      if(!memcmp(ext, ".$", 2)) typ = DIT_HOB;
+      if(!memcmp(ext, ".!", 2)) typ = DIT_HOB;
+   }
 
    if(! ((FType==DIT_HOB)&&(typ==DIT_HOB)) )     // if not hobeta clear disk...
    {
@@ -422,10 +416,10 @@ void TDiskImage::Open(char *filename, bool ROnly)
       ShowError(ERR_UNKFORMAT);
       return;
    }
-   lstrcpy((char*)FFileName, filename);
+   strcpy((char*)FFileName, filename);
    FType = typ;
                                                                         
-   if(GetFileAttributes(filename)==0xFFFFFFFF) // file not present - create needed
+   if(!file_exists(filename)) // file not present - create needed
    {
 /*
       if(IDYES != MessageBox(GetForegroundWindow(), STR_CREATE,"Create disk image", MB_ICONQUESTION | MB_YESNO)) return;
@@ -449,7 +443,7 @@ void TDiskImage::Open(char *filename, bool ROnly)
       return;
    }
 
-   int hfile = open(filename, O_RDONLY | O_BINARY);
+   int hfile = open(filename, O_RDONLY | O_BINARY, 0666);
 
    if(hfile < 0)
    {
@@ -647,7 +641,7 @@ void TDiskImage::readUDI(int hfile, bool ronly)
    for(trk=0; trk <= unsigned(MaxTrack); trk++)
       for(side=0; side <= unsigned(MaxSide); side++)
       {
-         unsigned char frmt = ptr[udiOFF++];
+         uint8_t frmt = ptr[udiOFF++];
          if(rsize < udiOFF+4)
          {
             delete ptr;
@@ -657,12 +651,12 @@ void TDiskImage::readUDI(int hfile, bool ronly)
 
          if(frmt)
          {
-            udiOFF += *((unsigned long*)(ptr+udiOFF));
+            udiOFF += *((uint32_t*)(ptr+udiOFF));
             udiOFF += 4;
             continue;
          }
 
-         unsigned ccctlen = *((unsigned short*)(ptr+udiOFF));
+         unsigned ccctlen = *((uint16_t*)(ptr+udiOFF));
          udiOFF += ccctlen;
          udiOFF += 2;
          if(rsize < udiOFF+4)
@@ -723,7 +717,7 @@ void TDiskImage::readUDI(int hfile, bool ronly)
          memcpy(FTracksPtr[trk][side][0], ptr+udiOFF, FTrackLength[trk][side]);
          udiOFF += trklen;
 
-         unsigned int MFMinfoLen = trklen/8 + ((trklen-(trklen/8)*8)? 1:0);
+         uint32_t MFMinfoLen = trklen/8 + ((trklen-(trklen/8)*8)? 1:0);
 
          unsigned char mask;
          for(unsigned i=0; i < MFMinfoLen; i++)
@@ -743,7 +737,7 @@ void TDiskImage::readUDI(int hfile, bool ronly)
 
 
    if(udiOFF < rsize) 
-      if( *((long*)(ptr+udiOFF)) != CRC )
+      if( *((uint32_t*)(ptr+udiOFF)) != CRC )
          ShowError(ERR_FILECRC" UDI!");
 
    delete ptr;
@@ -754,7 +748,7 @@ void TDiskImage::readUDI(int hfile, bool ronly)
 //-----------------------------------------------------------------------------
 void TDiskImage::writeUDI(int hfile)
 {
-   long CRC = -1l;
+   uint32_t CRC = -1l;
    unsigned int i;
 
    UDI_HEADER hudi;
@@ -767,7 +761,7 @@ void TDiskImage::writeUDI(int hfile)
    hudi.ExtHdrLength = 0;
 
    lseek(hfile, 0, SEEK_SET);
-   write(hfile, &hudi, 16);
+   write(hfile, &hudi, sizeof(UDI_HEADER));
    lseek(hfile, 0, SEEK_SET);
    char testbuf[1024];
    long trs = read(hfile, testbuf, 16);
@@ -1044,7 +1038,7 @@ void TDiskImage::readFDI(int hfile, bool readonly)
    MaxTrack = (unsigned char)(fdiCylCount-1);
    MaxSide = (unsigned char)(fdiSideCount-1);
 
-   if(rsize < 0x0E+fdiSIZEext+(unsigned(MaxTrack)+1)*(unsigned(MaxSide)+1)*7 )
+   if(rsize < 0x0E + fdiSIZEext + (unsigned(MaxTrack) + 1) * (unsigned(MaxSide) + 1) * 7 )
    {
       delete ptr;
       ShowError(ERR_CORRUPT);
@@ -1065,7 +1059,7 @@ void TDiskImage::readFDI(int hfile, bool readonly)
    };
    FDITRACKHDR *tracksinfo = new FDITRACKHDR[(unsigned(MaxTrack)+1)*(unsigned(MaxSide)+1)];
 
-   unsigned int fdiOFF = 0x0E+fdiSIZEext;
+   unsigned int fdiOFF = 0x0E + fdiSIZEext;
 
    unsigned int trk, side;
 // Анализ области заголовков треков...
@@ -1080,7 +1074,7 @@ void TDiskImage::readFDI(int hfile, bool readonly)
             return;
          }
 
-         tracksinfo[trk*(MaxSide+1)+side].DataOffset = *((unsigned long*)(ptr+fdiOFF));
+         tracksinfo[trk*(MaxSide+1)+side].DataOffset = *((uint32_t*)(ptr+fdiOFF));
          fdiOFF+=4;
 
          if(rsize < fdiOFFdata+tracksinfo[trk*(MaxSide+1)+side].DataOffset )
@@ -1349,9 +1343,9 @@ void TDiskImage::writeFDI(int hfile)
    for(trk=0; trk <= unsigned(MaxTrack); trk++)
       for(side=0; side <= unsigned(MaxSide); side++)
       {
-         *((unsigned long*)(ptr+fdiOFF)) = trackOFF;
+         *((uint32_t*)(ptr+fdiOFF)) = trackOFF;
          fdiOFF += 4;
-         *((unsigned short*)(ptr+fdiOFF)) = 0;  // Всегда содержит 0 (резерв)
+         *((uint16_t*)(ptr+fdiOFF)) = 0;  // Всегда содержит 0 (резерв)
          fdiOFF += 2;
          htrkSectorCount = ptr+fdiOFF;
          fdiOFF++;
@@ -1869,8 +1863,8 @@ void TDiskImage::readSCL(int hfile, bool readonly)
    unsigned short FilesTotalSecs = 0;
 
 // checking for corrupt + SCL-CRC + FileDIRS parse
-   unsigned long SCLCRC = 0;
-   unsigned sclOFF = 0;
+   uint32_t SCLCRC = 0;
+   uint32_t sclOFF = 0;
    unsigned int i, j;
    for(i=0; i < 9; i++) SCLCRC += unsigned(ptr[sclOFF++]);
 
@@ -1892,7 +1886,7 @@ void TDiskImage::readSCL(int hfile, bool readonly)
       for(j=0; j < SL; j++) SCLCRC += unsigned(ptr[sclOFF++]);
    }
 
-   if( *((unsigned long*)(ptr+sclOFF)) != SCLCRC )
+   if( *((uint32_t*)(ptr+sclOFF)) != SCLCRC )
       ShowError(ERR_FILECRC" SCL!");
 
 
@@ -1927,8 +1921,8 @@ void TDiskImage::readSCL(int hfile, bool readonly)
 
       memcpy(sbuf, fileinfo[i]->FileName, 9);
       if(sbuf[0] == 0x01) _DelFileCount++;
-      _FileCount++;
-      strupr(sbuf);
+      _FileCount++; 
+      make_uppercase(sbuf);
       if(!memcmp(sbuf, "BOOT    B", 9)) BOOTADD = false;
 
       memcpy(&trdosde, fileinfo[i], 14);
@@ -2036,7 +2030,7 @@ void TDiskImage::writeSCL(int hfile)
    }
 
    unsigned i,j;
-   unsigned long SCLCRC=0;
+   uint32_t SCLCRC=0;
    unsigned char buf[256*16];
    memcpy(buf, "SINCLAIR", 8);
    buf[8] = (unsigned char)FileCount;
@@ -2137,8 +2131,8 @@ void TDiskImage::readHOB(int hfile)
    TRDOS_DIR_ELEMENT dired;
    memcpy(&dired, ptr, 14);
 
-   unsigned short hobRealCRC = *((unsigned short*)(ptr+0x0F));
-   unsigned int DataLength = *((unsigned short*)(ptr+0x0D));
+   unsigned short hobRealCRC = *((uint16_t*)(ptr+0x0F));
+   unsigned int DataLength = *((uint16_t*)(ptr+0x0D));
 
    if(rsize < 17+(DataLength&0xFF00))
    {
@@ -2148,7 +2142,7 @@ void TDiskImage::readHOB(int hfile)
    }
 
    unsigned int i;
-   unsigned short CRC=0;
+   uint16_t CRC=0;
    for(i=0; i < 15; i++) CRC = CRC + ptr[i];
    CRC *= 257;
    CRC += 105;          // сумма чисел от 0 до 14
@@ -2592,7 +2586,7 @@ void TDiskImage::writeTD0(int hfile)
 }
 //-----------------------------------------------------------------------------
 
-void TDiskImage::ShowError(char *str)
+void TDiskImage::ShowError(const char *str)
 {
    cout << "DiskImage Error: " << str << endl;
 }
@@ -2621,7 +2615,7 @@ bool unpack_td0(unsigned char *data, long &size)
    if(size < 12) return false;
    if( (*(short*)data != WORD2('T','D'))&&(*(short*)data != WORD2('t','d')) )
       return false;             // non TD0
-   if( TD0CRC(data,10) != *((unsigned short*)(data+0x0A)) ) 
+   if( TD0CRC(data,10) != *((uint16_t*)(data+0x0A)) ) 
       return false;             // CRC bad...
    if( data[4] > 21 ) 
       return false;             // version > 2.1...
@@ -2714,7 +2708,7 @@ bool unpack_td0(unsigned char *data, long &size)
          td0_src = end_packed_data;
       }
    }
-   size = unsigned(td0_dst) - unsigned(data);
+   size = (unsigned int)(td0_dst - data);
    delete snbuf;
    return true;
 }
@@ -2857,17 +2851,17 @@ unsigned char d_len[256] = {
 };
 
 
-const N = 4096;     // buffer size
-const F = 60;       // lookahead buffer size
-const THRESHOLD =   2;
-const NIL = N;      // leaf of tree
+const unsigned int N = 4096;     // buffer size
+const unsigned int F = 60;       // lookahead buffer size
+const unsigned int THRESHOLD =   2;
+const unsigned int NIL = N;      // leaf of tree
 
 unsigned char text_buf[N + F - 1];
 
-const N_CHAR = (256 - THRESHOLD + F);       // kinds of characters (character code = 0..N_CHAR-1)
-const T =   (N_CHAR * 2 - 1);       // size of table
-const R = (T - 1);                  // position of root
-const MAX_FREQ = 0x8000;            // updates tree when the
+const unsigned int N_CHAR = (256 - THRESHOLD + F);       // kinds of characters (character code = 0..N_CHAR-1)
+const unsigned int T =   (N_CHAR * 2 - 1);       // size of table
+const unsigned int R = (T - 1);                  // position of root
+const unsigned int MAX_FREQ = 0x8000;            // updates tree when the
                                     // root frequency comes to this value.
 
 unsigned short freq[T + 1];        // frequency table
@@ -2965,9 +2959,9 @@ void reconst(void)
     for(k = j - 1; f < freq[k]; k--);
     k++;
     l = (j - k) * sizeof(*freq);
-    MoveMemory(&freq[k + 1], &freq[k], l);
+    memcpy(&freq[k + 1], &freq[k], l);
     freq[k] = f;
-    MoveMemory(&son[k + 1], &son[k], l);
+    memcpy(&son[k + 1], &son[k], l);
     son[k] = i;
   }
   /* connect prnt */

@@ -1,17 +1,12 @@
-#include <windows.h>
-
-#include <iostream.h>
+#include <iostream>
+using namespace std;
 
 #include <fcntl.h>
-#include <io.h>
-#include <sys\stat.h>
-#include <stdlib.h>
-
-#include <conio.h>
-
+#include <stdio.h>
+#include <string.h>
 
 #include "DiskImage.h"
-
+#include "utils.h"
 
 int main(int argc, char *argv[])
 {
@@ -37,42 +32,41 @@ int main(int argc, char *argv[])
    }
    cout << argv[1] << " ---> " << argv[2] << "..." << endl << endl;
 
-   if(GetFileAttributes(argv[1])==0xFFFFFFFF) // file not exists!!!
+   if(!file_exists(argv[1])) // file not exists!!!
    {
       cout << "Error: source file not found!" << endl;
       return 3;
    }
 
-   if(GetFileAttributes(argv[2])!=0xFFFFFFFF) // file exists!!!
+   if(file_exists(argv[2])) // file exists!!!
    {
       cout << "Warning: destination file already exists!" << endl;
       cout << "Are you sure to overwrite? (y/n) ";
       cout.flush();
-      int cr = getche();
+      int cr = getchar();
       cout << endl;
       if( (cr!='y')&&(cr!='Y') ) 
       {
-         cout << endl << endl << "Operation aborted!" << endl;
+         cout << "Operation aborted!" << endl;
          return 4;
       }
    }
 
 // detect output type:
-
-   char drive[_MAX_DRIVE];
-   char subdir[_MAX_DIR];
-   char file[_MAX_FNAME];
-   char ext[_MAX_EXT];
-   _splitpath(argv[2], drive, subdir, file, ext);
-
-   strupr(ext);
    TDiskImageType typ = DIT_UNK;
-   if(!strcmp(ext, ".TRD")) typ = DIT_TRD;
-   if(!strcmp(ext, ".SCL")) typ = DIT_SCL;
-   if(!strcmp(ext, ".FDI")) typ = DIT_FDI;
-   if(!strcmp(ext, ".UDI")) typ = DIT_UDI;
-   if(!strcmp(ext, ".TD0")) typ = DIT_TD0;
-   if(!strcmp(ext, ".FDD")) typ = DIT_FDD;
+
+   char ext[MAX_EXT];
+   const char* ext_pos = get_extension(argv[2]);
+   if (ext_pos) {
+      strncpy(ext, ext_pos, MAX_EXT);
+      make_uppercase(ext);
+      if(!strcmp(ext, ".TRD")) typ = DIT_TRD;
+      if(!strcmp(ext, ".SCL")) typ = DIT_SCL;
+      if(!strcmp(ext, ".FDI")) typ = DIT_FDI;
+      if(!strcmp(ext, ".UDI")) typ = DIT_UDI;
+      if(!strcmp(ext, ".TD0")) typ = DIT_TD0;
+      if(!strcmp(ext, ".FDD")) typ = DIT_FDD;
+   }
 
    if(typ == DIT_UNK)
    {
@@ -92,7 +86,7 @@ int main(int argc, char *argv[])
    }
    cout << "source file successfully loaded..." << endl;
 
-   int hf = open(argv[2], O_CREAT | O_RDWR | O_TRUNC | O_BINARY, _S_IREAD|_S_IWRITE);
+   int hf = open(argv[2], O_CREAT | O_RDWR | O_TRUNC | O_BINARY, 0666);
    if(hf < 0)
    {
       delete img1;

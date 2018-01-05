@@ -1,32 +1,35 @@
 #ifndef __DISKIMAGE_H
 #define __DISKIMAGE_H
+
+#include <stdint.h>
+
 //-----------------------------------------------------------------------------
 
 enum TDiskImageType { DIT_UNK, DIT_TRD, DIT_SCL, DIT_FDI, DIT_TD0, DIT_UDI, DIT_HOB, DIT_FDD };
 
 struct VGFIND_TRACK
 {
-   unsigned char *TrackPointer;
-   unsigned char *ClkPointer;
-   unsigned int TrackLength;
-   bool FoundTrack;
+   uint8_t *TrackPointer;
+   uint8_t *ClkPointer;
+   uint32_t TrackLength;
+   uint8_t FoundTrack;
 };
 
 
 struct VGFIND_ADM
 {
-   unsigned char* TrackPointer;
-   unsigned char* ClkPointer;
-   unsigned int TrackLength;
+   uint8_t* TrackPointer;
+   uint8_t* ClkPointer;
+   uint32_t TrackLength;
 
-   unsigned char *ADMPointer;
-   unsigned int ADMLength;
+   uint8_t *ADMPointer;
+   uint32_t ADMLength;
 
-   unsigned int MarkedOffsetADM;
-   unsigned int OffsetADM;
-   unsigned int OffsetEndADM;
-   bool FoundADM;
-   bool CRCOK;
+   uint32_t MarkedOffsetADM;
+   uint32_t OffsetADM;
+   uint32_t OffsetEndADM;
+   uint8_t FoundADM;
+   uint8_t CRCOK;
 };
 
 
@@ -34,48 +37,48 @@ struct VGFIND_SECTOR
 {
    VGFIND_ADM vgfa;
 
-   unsigned char *SectorPointer;
-   unsigned int SectorLength;
+   uint8_t *SectorPointer;
+   uint32_t SectorLength;
 
-   unsigned int MarkedOffsetSector;
-   unsigned int OffsetSector;
-   unsigned int OffsetEndSector;
-   bool FoundDATA;
-   bool CRCOK;
-   unsigned char DataMarker;
+   uint32_t MarkedOffsetSector;
+   uint32_t OffsetSector;
+   uint32_t OffsetEndSector;
+   uint8_t FoundDATA;
+   uint8_t CRCOK;
+   uint8_t DataMarker;
 };
 
 
 class TDiskImage
 {
-   unsigned int FTrackLength[256][256];
-   unsigned char* FTracksPtr[256][256][2];
+   uint32_t FTrackLength[256][256];
+   uint8_t* FTracksPtr[256][256][2];
 
-   unsigned char FFileName[4096];
+   char FFileName[4096];
    TDiskImageType FType;
-   unsigned char Fdefbuf[16384];
+   uint8_t Fdefbuf[16384];
 
-   unsigned short MakeVGCRC(unsigned char *data, unsigned long length);
+   uint16_t MakeVGCRC(unsigned char *data, unsigned long length);
 public:
    bool Changed;
 
    bool ReadOnly;
    bool DiskPresent;
-   unsigned char MaxTrack;
-   unsigned char MaxSide;
+   uint8_t MaxTrack;
+   uint8_t MaxSide;
 
    bool AddBOOT;
 
    TDiskImage();
    ~TDiskImage();
 
-   bool FindTrack(unsigned char CYL, unsigned char SIDE, VGFIND_TRACK *vgft);
-   bool FindADMark(unsigned char CYL, unsigned char SIDE,
-                   unsigned int FromOffset, 
+   bool FindTrack(uint8_t CYL, uint8_t SIDE, VGFIND_TRACK *vgft);
+   bool FindADMark(uint8_t CYL, uint8_t SIDE,
+                   uint32_t FromOffset, 
                    VGFIND_ADM *vgfa);
-   bool FindSector(unsigned char CYL, unsigned char SIDE,
-                   unsigned char SECT, 
-                   VGFIND_SECTOR *vgfs, unsigned int FromOffset=0);
+   bool FindSector(uint8_t CYL, uint8_t SIDE,
+                   uint8_t SECT, 
+                   VGFIND_SECTOR *vgfs, uint32_t FromOffset=0);
    void ApplySectorCRC(VGFIND_SECTOR vgfs);
 
 
@@ -97,86 +100,86 @@ public:
    void writeFDD(int hfile);
    void readHOB(int hfile);
 
-   void formatTRDOS(unsigned int tracks, unsigned int sides);
+   void formatTRDOS(uint32_t tracks, uint32_t sides);
 
-   void ShowError(char *str);
+   void ShowError(const char *str);
 };
 
 #pragma pack(1)
 struct UDI_HEADER               // 16 bytes
 {
-   unsigned char ID[4];
-   unsigned long UnpackedLength;
-   unsigned char Version;
-   unsigned char MaxCylinder;
-   unsigned char MaxSide;
-   unsigned char _zero;
-   unsigned long ExtHdrLength;
+   uint8_t ID[4];
+   uint32_t UnpackedLength;
+   uint8_t Version;
+   uint8_t MaxCylinder;
+   uint8_t MaxSide;
+   uint8_t _zero;
+   uint32_t ExtHdrLength;
 };
 
 struct TD0_MAIN_HEADER          // 12 bytes
 {
    char ID[2];                  // +0:  "TD" - 'Normal'; "td" - packed LZH ('New Advanced data compression')
-   unsigned char __t;           // +2:  = 0x00
-   unsigned char __1;           // +3:  ???
-   unsigned char Ver;           // +4:  Source version  (1.0 -> 10, ..., 2.1 -> 21)
-   unsigned char __2;           // +5:  ???
-   unsigned char DiskType;      // +6:  Source disk type
-   unsigned char Info;          // +7:  D7-наличие image info
-   unsigned char DataDOS;       // +8:  if(=0)'All sectors were copied', else'DOS Allocated sectors were copied'
-   unsigned char ChkdSides;     // +9:  if(=1)'One side was checked', else'Both sides were checked'
-   unsigned short CRC;          // +A:  CRC хидера TD0_MAIN_HEADER (кроме байт с CRC)
+   uint8_t __t;           // +2:  = 0x00
+   uint8_t __1;           // +3:  ???
+   uint8_t Ver;           // +4:  Source version  (1.0 -> 10, ..., 2.1 -> 21)
+   uint8_t __2;           // +5:  ???
+   uint8_t DiskType;      // +6:  Source disk type
+   uint8_t Info;          // +7:  D7-наличие image info
+   uint8_t DataDOS;       // +8:  if(=0)'All sectors were copied', else'DOS Allocated sectors were copied'
+   uint8_t ChkdSides;     // +9:  if(=1)'One side was checked', else'Both sides were checked'
+   uint16_t CRC;          // +A:  CRC хидера TD0_MAIN_HEADER (кроме байт с CRC)
 };
 
 struct TD0_INFO_DATA             // 10 байт без строки коментария...
 {
-   unsigned short CRC;          // +0:  CRC для структуры COMMENT_DATA (без байтов CRC)
-   unsigned short strLen;       // +2:  Длина строки коментария 
-   unsigned char Year;          // +4:  Дата создания - год (1900 + X)
-   unsigned char Month;         // +5:  Дата создания - месяц (Январь=0, Февраль=1,...)
-   unsigned char Day;           // +6:  Дата создания - число
-   unsigned char Hours;         // +7:  Время создания - часы
-   unsigned char Minutes;       // +8:  Время создания - минуты
-   unsigned char Seconds;       // +9:  Время создания - секунды
+   uint16_t CRC;          // +0:  CRC для структуры COMMENT_DATA (без байтов CRC)
+   uint16_t strLen;       // +2:  Длина строки коментария 
+   uint8_t Year;          // +4:  Дата создания - год (1900 + X)
+   uint8_t Month;         // +5:  Дата создания - месяц (Январь=0, Февраль=1,...)
+   uint8_t Day;           // +6:  Дата создания - число
+   uint8_t Hours;         // +7:  Время создания - часы
+   uint8_t Minutes;       // +8:  Время создания - минуты
+   uint8_t Seconds;       // +9:  Время создания - секунды
 };
 
 struct TD0_TRACK_HEADER         // 4 bytes
 {
-   unsigned char SectorCount;
-   unsigned char Track;
-   unsigned char Side;
-   unsigned char CRCL;
+   uint8_t SectorCount;
+   uint8_t Track;
+   uint8_t Side;
+   uint8_t CRCL;
 };
 
 struct TD0_SECT_HEADER          // 8 bytes
 {
-   unsigned char ADRM[6];
-   unsigned short DataLength;
+   uint8_t ADRM[6];
+   uint16_t DataLength;
 };
 
 struct FDD_MAIN_HEADER 
 {
     char ID[30];                /* сигнатура */
-    unsigned char MaxTracks;    /* число треков (цилиндров) */
-    unsigned char MaxHeads;     /* число головок (1 или 2) */
-    long diskIndex;             /* unused */
-    long DataOffset[512*2];     /* смещение в файле к структурам заголовков */
+    uint8_t MaxTracks;    /* число треков (цилиндров) */
+    uint8_t MaxHeads;     /* число головок (1 или 2) */
+    uint32_t diskIndex;             /* unused */
+    uint32_t DataOffset[512*2];     /* смещение в файле к структурам заголовков */
                                 /* треков       */
 };
 
 struct FDD_TRACK_HEADER
 {
-    unsigned char trkType;      /* unused */
-    unsigned char SectNum;      /* число секторов на треке */
+    uint8_t trkType;      /* unused */
+    uint8_t SectNum;      /* число секторов на треке */
     struct
     {
         /* заголовок сектора */
-         unsigned char trk;     /* номер трека */
-         unsigned char side;    /* номер стороны */
+         uint8_t trk;     /* номер трека */
+         uint8_t side;    /* номер стороны */
                                 /* 7 бит этого байта указывает бит a */
-         unsigned char sect;    /* номер сектора */
-         unsigned char size;    /* размер сектора (код) */
-         long SectPos;          /* смещение в файле к данным сектора */
+         uint8_t sect;    /* номер сектора */
+         uint8_t size;    /* размер сектора (код) */
+         uint32_t SectPos;          /* смещение в файле к данным сектора */
     } sect[256];
 };
 
@@ -188,11 +191,11 @@ struct TRDOS_DIR_ELEMENT        // 16 bytes
 {
    char FileName[8];
    char Type;
-   unsigned short Start;
-   unsigned short Length;
-   unsigned char SecLen;
-   unsigned char FirstSec;
-   unsigned char FirstTrk;
+   uint16_t Start;
+   uint16_t Length;
+   uint8_t SecLen;
+   uint8_t FirstSec;
+   uint8_t FirstTrk;
 };
 #pragma pack()
 
