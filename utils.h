@@ -1,3 +1,4 @@
+#include <cstring>
 #include <sys/stat.h>
 
 #ifdef _WIN32
