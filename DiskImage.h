@@ -125,22 +125,22 @@ struct TD0_MAIN_HEADER          // 12 bytes
    uint8_t Ver;           // +4:  Source version  (1.0 -> 10, ..., 2.1 -> 21)
    uint8_t __2;           // +5:  ???
    uint8_t DiskType;      // +6:  Source disk type
-   uint8_t Info;          // +7:  D7-наличие image info
+   uint8_t Info;          // +7:  D7-╨╜╨░╨╗╨╕╤З╨╕╨╡ image info
    uint8_t DataDOS;       // +8:  if(=0)'All sectors were copied', else'DOS Allocated sectors were copied'
    uint8_t ChkdSides;     // +9:  if(=1)'One side was checked', else'Both sides were checked'
-   uint16_t CRC;          // +A:  CRC хидера TD0_MAIN_HEADER (кроме байт с CRC)
+   uint16_t CRC;          // +A:  CRC ╤Е╨╕╨┤╨╡╤А╨░ TD0_MAIN_HEADER (╨║╤А╨╛╨╝╨╡ ╨▒╨░╨╣╤В ╤Б CRC)
 };
 
-struct TD0_INFO_DATA             // 10 байт без строки коментария...
+struct TD0_INFO_DATA             // 10 ╨▒╨░╨╣╤В ╨▒╨╡╨╖ ╤Б╤В╤А╨╛╨║╨╕ ╨║╨╛╨╝╨╡╨╜╤В╨░╤А╨╕╤П...
 {
-   uint16_t CRC;          // +0:  CRC для структуры COMMENT_DATA (без байтов CRC)
-   uint16_t strLen;       // +2:  Длина строки коментария 
-   uint8_t Year;          // +4:  Дата создания - год (1900 + X)
-   uint8_t Month;         // +5:  Дата создания - месяц (Январь=0, Февраль=1,...)
-   uint8_t Day;           // +6:  Дата создания - число
-   uint8_t Hours;         // +7:  Время создания - часы
-   uint8_t Minutes;       // +8:  Время создания - минуты
-   uint8_t Seconds;       // +9:  Время создания - секунды
+   uint16_t CRC;          // +0:  CRC ╨┤╨╗╤П ╤Б╤В╤А╤Г╨║╤В╤Г╤А╤Л COMMENT_DATA (╨▒╨╡╨╖ ╨▒╨░╨╣╤В╨╛╨▓ CRC)
+   uint16_t strLen;       // +2:  ╨Ф╨╗╨╕╨╜╨░ ╤Б╤В╤А╨╛╨║╨╕ ╨║╨╛╨╝╨╡╨╜╤В╨░╤А╨╕╤П 
+   uint8_t Year;          // +4:  ╨Ф╨░╤В╨░ ╤Б╨╛╨╖╨┤╨░╨╜╨╕╤П - ╨│╨╛╨┤ (1900 + X)
+   uint8_t Month;         // +5:  ╨Ф╨░╤В╨░ ╤Б╨╛╨╖╨┤╨░╨╜╨╕╤П - ╨╝╨╡╤Б╤П╤Ж (╨п╨╜╨▓╨░╤А╤М=0, ╨д╨╡╨▓╤А╨░╨╗╤М=1,...)
+   uint8_t Day;           // +6:  ╨Ф╨░╤В╨░ ╤Б╨╛╨╖╨┤╨░╨╜╨╕╤П - ╤З╨╕╤Б╨╗╨╛
+   uint8_t Hours;         // +7:  ╨Т╤А╨╡╨╝╤П ╤Б╨╛╨╖╨┤╨░╨╜╨╕╤П - ╤З╨░╤Б╤Л
+   uint8_t Minutes;       // +8:  ╨Т╤А╨╡╨╝╤П ╤Б╨╛╨╖╨┤╨░╨╜╨╕╤П - ╨╝╨╕╨╜╤Г╤В╤Л
+   uint8_t Seconds;       // +9:  ╨Т╤А╨╡╨╝╤П ╤Б╨╛╨╖╨┤╨░╨╜╨╕╤П - ╤Б╨╡╨║╤Г╨╜╨┤╤Л
 };
 
 struct TD0_TRACK_HEADER         // 4 bytes
@@ -159,32 +159,29 @@ struct TD0_SECT_HEADER          // 8 bytes
 
 struct FDD_MAIN_HEADER 
 {
-    char ID[30];                /* сигнатура */
-    uint8_t MaxTracks;    /* число треков (цилиндров) */
-    uint8_t MaxHeads;     /* число головок (1 или 2) */
+    char ID[30];                /* ╤Б╨╕╨│╨╜╨░╤В╤Г╤А╨░ */
+    uint8_t MaxTracks;    /* ╤З╨╕╤Б╨╗╨╛ ╤В╤А╨╡╨║╨╛╨▓ (╤Ж╨╕╨╗╨╕╨╜╨┤╤А╨╛╨▓) */
+    uint8_t MaxHeads;     /* ╤З╨╕╤Б╨╗╨╛ ╨│╨╛╨╗╨╛╨▓╨╛╨║ (1 ╨╕╨╗╨╕ 2) */
     uint32_t diskIndex;             /* unused */
-    uint32_t DataOffset[512*2];     /* смещение в файле к структурам заголовков */
-                                /* треков       */
+    uint32_t DataOffset[512*2];     /* ╤Б╨╝╨╡╤Й╨╡╨╜╨╕╨╡ ╨▓ ╤Д╨░╨╣╨╗╨╡ ╨║ ╤Б╤В╤А╤Г╨║╤В╤Г╤А╨░╨╝ ╨╖╨░╨│╨╛╨╗╨╛╨▓╨║╨╛╨▓ */
+                                /* ╤В╤А╨╡╨║╨╛╨▓       */
 };
 
 struct FDD_TRACK_HEADER
 {
     uint8_t trkType;      /* unused */
-    uint8_t SectNum;      /* число секторов на треке */
+    uint8_t SectNum;      /* ╤З╨╕╤Б╨╗╨╛ ╤Б╨╡╨║╤В╨╛╤А╨╛╨▓ ╨╜╨░ ╤В╤А╨╡╨║╨╡ */
     struct
     {
-        /* заголовок сектора */
-         uint8_t trk;     /* номер трека */
-         uint8_t side;    /* номер стороны */
-                                /* 7 бит этого байта указывает бит a */
-         uint8_t sect;    /* номер сектора */
-         uint8_t size;    /* размер сектора (код) */
-         uint32_t SectPos;          /* смещение в файле к данным сектора */
+        /* ╨╖╨░╨│╨╛╨╗╨╛╨▓╨╛╨║ ╤Б╨╡╨║╤В╨╛╤А╨░ */
+         uint8_t trk;     /* ╨╜╨╛╨╝╨╡╤А ╤В╤А╨╡╨║╨░ */
+         uint8_t side;    /* ╨╜╨╛╨╝╨╡╤А ╤Б╤В╨╛╤А╨╛╨╜╤Л */
+                                /* 7 ╨▒╨╕╤В ╤Н╤В╨╛╨│╨╛ ╨▒╨░╨╣╤В╨░ ╤Г╨║╨░╨╖╤Л╨▓╨░╨╡╤В ╨▒╨╕╤В a */
+         uint8_t sect;    /* ╨╜╨╛╨╝╨╡╤А ╤Б╨╡╨║╤В╨╛╤А╨░ */
+         uint8_t size;    /* ╤А╨░╨╖╨╝╨╡╤А ╤Б╨╡╨║╤В╨╛╤А╨░ (╨║╨╛╨┤) */
+         uint32_t SectPos;          /* ╤Б╨╝╨╡╤Й╨╡╨╜╨╕╨╡ ╨▓ ╤Д╨░╨╣╨╗╨╡ ╨║ ╨┤╨░╨╜╨╜╤Л╨╝ ╤Б╨╡╨║╤В╨╛╤А╨░ */
     } sect[256];
 };
-
-
-
 
 
 struct TRDOS_DIR_ELEMENT        // 16 bytes
@@ -198,9 +195,6 @@ struct TRDOS_DIR_ELEMENT        // 16 bytes
    uint8_t FirstTrk;
 };
 #pragma pack()
-
-
-
 
 //-----------------------------------------------------------------------------
 #endif

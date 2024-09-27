@@ -16,7 +16,7 @@ using namespace std;
 #define ERR_FILECRC     "Error: bad file CRC"
 #define ERR_CANTWRITE   "Error: write to file failed!"
 #define ERR_UNKFORMAT   "Error: Unknown format of source file!"
-#define ERR_BADCREATE   "Допустимо создавать только TRD, SCL и FDI файлы!"
+#define ERR_BADCREATE   "Р”РѕРїСѓСЃС‚РёРјРѕ СЃРѕР·РґР°РІР°С‚СЊ С‚РѕР»СЊРєРѕ TRD, SCL Рё FDI С„Р°Р№Р»С‹!"
 #define ERR_MANYCYLS    "Error: out of 256 cylinders in opening source file!"
 #define ERR_MANYSIDS    "Error: out of 2 surfaces in opening source file!"
 #define ERR_IMPOSSIBLE  "Error: impossible format in opening source file!"
@@ -25,7 +25,7 @@ using namespace std;
 
 #define ERR_BADOPENED   "Error: file opened in incorrect mode (write only?)"
 
-#define STR_CREATE      "Файл не существует, создать?"
+#define STR_CREATE      "Р¤Р°Р№Р» РЅРµ СЃСѓС‰РµСЃС‚РІСѓРµС‚, СЃРѕР·РґР°С‚СЊ?"
 
 #define STR_CREATEDISKNAME      "ZXMAK     "
 
@@ -242,7 +242,7 @@ bool TDiskImage::FindSector(unsigned char CYL, unsigned char SIDE,
    bool FirstFind = true;
    unsigned int FirstPos;
 
-// Поиск адресной метки требуемого сектора...
+// РџРѕРёСЃРє Р°РґСЂРµСЃРЅРѕР№ РјРµС‚РєРё С‚СЂРµР±СѓРµРјРѕРіРѕ СЃРµРєС‚РѕСЂР°...
    bool ADFOUND = false;
    for(;;)
    {
@@ -270,7 +270,7 @@ bool TDiskImage::FindSector(unsigned char CYL, unsigned char SIDE,
 
    if(!ADFOUND) return false;
 
-// ADRMARK нужного найден, поиск массива данных...
+// ADRMARK РЅСѓР¶РЅРѕРіРѕ РЅР°Р№РґРµРЅ, РїРѕРёСЃРє РјР°СЃСЃРёРІР° РґР°РЅРЅС‹С…...
 
    unsigned char *track = vgfs->vgfa.TrackPointer;
    unsigned char *clks  = vgfs->vgfa.ClkPointer;
@@ -445,12 +445,11 @@ void TDiskImage::Open(char *filename, bool ROnly)
 
    int hfile = open(filename, O_RDONLY | O_BINARY, 0666);
 
-   if(hfile < 0)
-   {
-      char sbuf[8192];
-      sprintf(sbuf, ERR_OPEN" %s", filename);
-      ShowError(sbuf);
-      return;
+   if (hfile < 0) {
+       char sbuf[8192];
+       snprintf(sbuf, sizeof(sbuf), ERR_OPEN" %s", filename);
+       ShowError(sbuf);
+       return;
    }
 
    if(typ==DIT_TRD) readTRD(hfile, ROnly);
@@ -471,7 +470,7 @@ void TDiskImage::formatTRDOS(unsigned int Tcount, unsigned int Scount)
 
    unsigned short TotalSecs = Tcount*Scount * 16 - 16;
 
-// форматирование нового диска под TR-DOS (16 x 256bytes sector per track)...
+// С„РѕСЂРјР°С‚РёСЂРѕРІР°РЅРёРµ РЅРѕРІРѕРіРѕ РґРёСЃРєР° РїРѕРґ TR-DOS (16 x 256bytes sector per track)...
    unsigned int ptrcrc;
    unsigned int r;
    unsigned short vgcrc;
@@ -486,23 +485,23 @@ void TDiskImage::formatTRDOS(unsigned int Tcount, unsigned int Scount)
          unsigned int tptr=0;
          for(int sec=0; sec < 16; sec++)
          {
-            for(r=0; r < 10; r++)        // Первый пробел
+            for(r=0; r < 10; r++)        // РџРµСЂРІС‹Р№ РїСЂРѕР±РµР»
             {
                FTracksPtr[trk][side][0][tptr] = 0x4E;
                FTracksPtr[trk][side][1][tptr++] = 0x00;
             }
-            for(r=0; r < 12; r++)        // Синхропромежуток
+            for(r=0; r < 12; r++)        // РЎРёРЅС…СЂРѕРїСЂРѕРјРµР¶СѓС‚РѕРє
             {
                FTracksPtr[trk][side][0][tptr] = 0x00;
                FTracksPtr[trk][side][1][tptr++] = 0x00;
             }
             ptrcrc = tptr;
-            for(r=0; r < 3; r++)        // Синхроимпульс
+            for(r=0; r < 3; r++)        // РЎРёРЅС…СЂРѕРёРјРїСѓР»СЊСЃ
             {
                FTracksPtr[trk][side][0][tptr] = 0xA1;
                FTracksPtr[trk][side][1][tptr++] = 0xFF;
             }
-            FTracksPtr[trk][side][0][tptr] = 0xFE;   // Метка "Адрес"
+            FTracksPtr[trk][side][0][tptr] = 0xFE;   // РњРµС‚РєР° "РђРґСЂРµСЃ"
             FTracksPtr[trk][side][1][tptr++] = 0x00;
 
             FTracksPtr[trk][side][0][tptr] = (unsigned char)trk; // cyl
@@ -520,26 +519,26 @@ void TDiskImage::formatTRDOS(unsigned int Tcount, unsigned int Scount)
             FTracksPtr[trk][side][0][tptr] = (unsigned char)(vgcrc&0xFF);
             FTracksPtr[trk][side][1][tptr++] = 0x00;
 
-            for(r=0; r < 22; r++)        // Второй пробел
+            for(r=0; r < 22; r++)        // Р’С‚РѕСЂРѕР№ РїСЂРѕР±РµР»
             {
                FTracksPtr[trk][side][0][tptr] = 0x4E;
                FTracksPtr[trk][side][1][tptr++] = 0x00;
             }
-            for(r=0; r < 12; r++)        // Синхропромежуток
+            for(r=0; r < 12; r++)        // РЎРёРЅС…СЂРѕРїСЂРѕРјРµР¶СѓС‚РѕРє
             {
                FTracksPtr[trk][side][0][tptr] = 0x00;
                FTracksPtr[trk][side][1][tptr++] = 0x00;
             }
             ptrcrc = tptr;
-            for(r=0; r < 3; r++)        // Синхроимпульс
+            for(r=0; r < 3; r++)        // РЎРёРЅС…СЂРѕРёРјРїСѓР»СЊСЃ
             {
                FTracksPtr[trk][side][0][tptr] = 0xA1;
                FTracksPtr[trk][side][1][tptr++] = 0xFF;
             }
-            FTracksPtr[trk][side][0][tptr] = 0xFB;   // Метка "Данные"
+            FTracksPtr[trk][side][0][tptr] = 0xFB;   // РњРµС‚РєР° "Р”Р°РЅРЅС‹Рµ"
             FTracksPtr[trk][side][1][tptr++] = 0x00;
 
-            for(r=0; r < 256; r++)        // сектор 256байт
+            for(r=0; r < 256; r++)        // СЃРµРєС‚РѕСЂ 256Р±Р°Р№С‚
             {
                FTracksPtr[trk][side][0][tptr] = 0x00;
                FTracksPtr[trk][side][1][tptr++] = 0x00;
@@ -569,7 +568,7 @@ void TDiskImage::formatTRDOS(unsigned int Tcount, unsigned int Scount)
             FTracksPtr[trk][side][0][tptr] = (unsigned char)(vgcrc&0xFF);
             FTracksPtr[trk][side][1][tptr++] = 0x00;
 
-            for(r=0; r < 60; r++)        // Третий пробел
+            for(r=0; r < 60; r++)        // РўСЂРµС‚РёР№ РїСЂРѕР±РµР»
             {
                FTracksPtr[trk][side][0][tptr] = 0x4E;
                FTracksPtr[trk][side][1][tptr++] = 0x00;
@@ -853,7 +852,7 @@ void TDiskImage::readTRD(int hfile, bool readonly)
    MaxTrack = (rsize / (256*16*2)) - 1;
 
 
-// форматирование нового диска под TR-DOS...
+// С„РѕСЂРјР°С‚РёСЂРѕРІР°РЅРёРµ РЅРѕРІРѕРіРѕ РґРёСЃРєР° РїРѕРґ TR-DOS...
 
    unsigned short vgcrc;
    for(unsigned int trk=0; trk <= unsigned(MaxTrack); trk++)
@@ -871,23 +870,23 @@ void TDiskImage::readTRD(int hfile, bool readonly)
 
          for(int sec=0; sec < 16; sec++)
          {
-            for(r=0; r < 10; r++)        // Первый пробел
+            for(r=0; r < 10; r++)        // РџРµСЂРІС‹Р№ РїСЂРѕР±РµР»
             {
                FTracksPtr[trk][side][0][tptr] = 0x4E;
                FTracksPtr[trk][side][1][tptr++] = 0x00;
             }
-            for(r=0; r < 12; r++)        // Синхропромежуток
+            for(r=0; r < 12; r++)        // РЎРёРЅС…СЂРѕРїСЂРѕРјРµР¶СѓС‚РѕРє
             {
                FTracksPtr[trk][side][0][tptr] = 0x00;
                FTracksPtr[trk][side][1][tptr++] = 0x00;
             }
             ptrcrc = tptr;
-            for(r=0; r < 3; r++)        // Синхроимпульс
+            for(r=0; r < 3; r++)        // РЎРёРЅС…СЂРѕРёРјРїСѓР»СЊСЃ
             {
                FTracksPtr[trk][side][0][tptr] = 0xA1;
                FTracksPtr[trk][side][1][tptr++] = 0xFF;
             }
-            FTracksPtr[trk][side][0][tptr] = 0xFE;   // Метка "Адрес"
+            FTracksPtr[trk][side][0][tptr] = 0xFE;   // РњРµС‚РєР° "РђРґСЂРµСЃ"
             FTracksPtr[trk][side][1][tptr++] = 0x00;
 
             FTracksPtr[trk][side][0][tptr] = (unsigned char)trk; // cyl
@@ -905,26 +904,26 @@ void TDiskImage::readTRD(int hfile, bool readonly)
             FTracksPtr[trk][side][0][tptr] = (unsigned char)(vgcrc&0xFF);
             FTracksPtr[trk][side][1][tptr++] = 0x00;
 
-            for(r=0; r < 22; r++)        // Второй пробел
+            for(r=0; r < 22; r++)        // Р’С‚РѕСЂРѕР№ РїСЂРѕР±РµР»
             {
                FTracksPtr[trk][side][0][tptr] = 0x4E;
                FTracksPtr[trk][side][1][tptr++] = 0x00;
             }
-            for(r=0; r < 12; r++)        // Синхропромежуток
+            for(r=0; r < 12; r++)        // РЎРёРЅС…СЂРѕРїСЂРѕРјРµР¶СѓС‚РѕРє
             {
                FTracksPtr[trk][side][0][tptr] = 0x00;
                FTracksPtr[trk][side][1][tptr++] = 0x00;
             }
             ptrcrc = tptr;
-            for(r=0; r < 3; r++)        // Синхроимпульс
+            for(r=0; r < 3; r++)        // РЎРёРЅС…СЂРѕРёРјРїСѓР»СЊСЃ
             {
                FTracksPtr[trk][side][0][tptr] = 0xA1;
                FTracksPtr[trk][side][1][tptr++] = 0xFF;
             }
-            FTracksPtr[trk][side][0][tptr] = 0xFB;   // Метка "Данные"
+            FTracksPtr[trk][side][0][tptr] = 0xFB;   // РњРµС‚РєР° "Р”Р°РЅРЅС‹Рµ"
             FTracksPtr[trk][side][1][tptr++] = 0x00;
 
-            for(r=0; r < 256; r++)        // сектор 256байт
+            for(r=0; r < 256; r++)        // СЃРµРєС‚РѕСЂ 256Р±Р°Р№С‚
             {
                FTracksPtr[trk][side][0][tptr] = ptr[(trk*2+side)*4096+sec*256+r];
                FTracksPtr[trk][side][1][tptr++] = 0x00;
@@ -935,7 +934,7 @@ void TDiskImage::readTRD(int hfile, bool readonly)
             FTracksPtr[trk][side][0][tptr] = (unsigned char)(vgcrc&0xFF);
             FTracksPtr[trk][side][1][tptr++] = 0x00;
 
-            for(r=0; r < 60; r++)        // Третий пробел
+            for(r=0; r < 60; r++)        // РўСЂРµС‚РёР№ РїСЂРѕР±РµР»
             {
                FTracksPtr[trk][side][0][tptr] = 0x4E;
                FTracksPtr[trk][side][1][tptr++] = 0x00;
@@ -1049,26 +1048,27 @@ void TDiskImage::readFDI(int hfile, bool readonly)
    struct FDISECINFO
    {
       unsigned char ADAM[5];
-      unsigned int SectorOffset;        // относит DataOffset
+      unsigned int SectorOffset;        // РѕС‚РЅРѕСЃРёС‚ DataOffset
    };
    struct FDITRACKHDR
    {
-      unsigned int DataOffset;          // относит начала файла
+      unsigned int DataOffset;          // РѕС‚РЅРѕСЃРёС‚ РЅР°С‡Р°Р»Р° С„Р°Р№Р»Р°
       unsigned int SectorCount;
       FDISECINFO SectorsInfo[256];
    };
+
    FDITRACKHDR *tracksinfo = new FDITRACKHDR[(unsigned(MaxTrack)+1)*(unsigned(MaxSide)+1)];
 
    unsigned int fdiOFF = 0x0E + fdiSIZEext;
 
    unsigned int trk, side;
-// Анализ области заголовков треков...
+// РђРЅР°Р»РёР· РѕР±Р»Р°СЃС‚Рё Р·Р°РіРѕР»РѕРІРєРѕРІ С‚СЂРµРєРѕРІ...
    for(trk=0; trk <= unsigned(MaxTrack); trk++)
       for(side=0; side <= unsigned(MaxSide); side++)
       {
          if(rsize < fdiOFF )
          {
-            delete tracksinfo;
+            delete[] tracksinfo;
             delete ptr;
             ShowError(ERR_CORRUPT);
             return;
@@ -1079,13 +1079,13 @@ void TDiskImage::readFDI(int hfile, bool readonly)
 
          if(rsize < fdiOFFdata+tracksinfo[trk*(MaxSide+1)+side].DataOffset )
          {
-            delete tracksinfo;
+            delete[] tracksinfo;
             delete ptr;
             ShowError(ERR_CORRUPT);
             return;
          }
 
-         fdiOFF+=2;      // "Всегда содержит 0 (резерв для модернизации)"
+         fdiOFF+=2;      // "Р’СЃРµРіРґР° СЃРѕРґРµСЂР¶РёС‚ 0 (СЂРµР·РµСЂРІ РґР»СЏ РјРѕРґРµСЂРЅРёР·Р°С†РёРё)"
 
          tracksinfo[trk*(MaxSide+1)+side].SectorCount = unsigned(ptr[fdiOFF++]);
 
@@ -1098,7 +1098,7 @@ void TDiskImage::readFDI(int hfile, bool readonly)
 
             if(rsize < fdiOFFdata+tracksinfo[trk*(MaxSide+1)+side].DataOffset+tracksinfo[trk*(MaxSide+1)+side].SectorsInfo[isec].SectorOffset )
             {
-               delete tracksinfo;
+               delete[] tracksinfo;
                delete ptr;
                ShowError(ERR_CORRUPT);
                return;
@@ -1106,7 +1106,7 @@ void TDiskImage::readFDI(int hfile, bool readonly)
          }
       }
 
-// форматирование нового диска и размещение FDI секторов...
+// С„РѕСЂРјР°С‚РёСЂРѕРІР°РЅРёРµ РЅРѕРІРѕРіРѕ РґРёСЃРєР° Рё СЂР°Р·РјРµС‰РµРЅРёРµ FDI СЃРµРєС‚РѕСЂРѕРІ...
    unsigned int ptrcrc;
    unsigned int r;
    unsigned short vgcrc;
@@ -1130,7 +1130,7 @@ void TDiskImage::readFDI(int hfile, bool readonly)
 
          SecCount = tracksinfo[trk*(MaxSide+1)+side].SectorCount;
 
-// Вычисляем необходимое число байт под данные:
+// Р’С‹С‡РёСЃР»СЏРµРј РЅРµРѕР±С…РѕРґРёРјРѕРµ С‡РёСЃР»Рѕ Р±Р°Р№С‚ РїРѕРґ РґР°РЅРЅС‹Рµ:
          trkdatalen = 0;
          for(unsigned int ilsec=0; ilsec < SecCount; ilsec++)
          {
@@ -1140,7 +1140,7 @@ void TDiskImage::readFDI(int hfile, bool readonly)
             else SL = 128 << SL;
 
             if(tracksinfo[trk*(MaxSide+1)+side].SectorsInfo[ilsec].ADAM[4] & 0x40)
-               SL = 0;          // заголовок без массива данных
+               SL = 0;          // Р·Р°РіРѕР»РѕРІРѕРє Р±РµР· РјР°СЃСЃРёРІР° РґР°РЅРЅС‹С…
             else
                trkdatalen += 4;       // for data header/crc: 0xA1, 0xFB, ...,2bytes
 
@@ -1149,7 +1149,7 @@ void TDiskImage::readFDI(int hfile, bool readonly)
 
          if(trkdatalen + SecCount*(3+2) > 6250)    // 3x4E & 2x00 per sec checking
          {
-            delete tracksinfo;
+            delete[] tracksinfo;
             delete ptr;
             for(int t=0; t < 256; t++)
                for(int s=0; s < 256; s++)
@@ -1166,14 +1166,14 @@ void TDiskImage::readFDI(int hfile, bool readonly)
 
          unsigned int FreeSpace = 6250 - (trkdatalen + SecCount*(3+2));
 
-         unsigned int SynchroPulseLen = 1; // 1 уже учтен в trkdatalen...
+         unsigned int SynchroPulseLen = 1; // 1 СѓР¶Рµ СѓС‡С‚РµРЅ РІ trkdatalen...
          unsigned int FirstSpaceLen = 1;
          unsigned int SecondSpaceLen = 1;
          unsigned int ThirdSpaceLen = 1;
          unsigned int SynchroSpaceLen = 1;
          FreeSpace -= FirstSpaceLen+SecondSpaceLen+ThirdSpaceLen+SynchroSpaceLen;
 
-// Распределяем длины пробелов и синхропромежутка:
+// Р Р°СЃРїСЂРµРґРµР»СЏРµРј РґР»РёРЅС‹ РїСЂРѕР±РµР»РѕРІ Рё СЃРёРЅС…СЂРѕРїСЂРѕРјРµР¶СѓС‚РєР°:
          while(FreeSpace > 0)
          {
             if(FreeSpace>=(SecCount*2)) 
@@ -1189,32 +1189,32 @@ void TDiskImage::readFDI(int hfile, bool readonly)
 
             if((SynchroSpaceLen>=12)&&(FirstSpaceLen>=10)&&(SecondSpaceLen>=22)&&(ThirdSpaceLen>=60)) break;
          };
-// по возможности делаем три синхроимпульса...
+// РїРѕ РІРѕР·РјРѕР¶РЅРѕСЃС‚Рё РґРµР»Р°РµРј С‚СЂРё СЃРёРЅС…СЂРѕРёРјРїСѓР»СЊСЃР°...
          if(FreeSpace > (SecCount*2)+10) { SynchroPulseLen++; FreeSpace-=SecCount; }
          if(FreeSpace > (SecCount*2)+9) SynchroPulseLen++; 
 
-// Форматируем дорожку...
+// Р¤РѕСЂРјР°С‚РёСЂСѓРµРј РґРѕСЂРѕР¶РєСѓ...
 
          unsigned int tptr=0;
          for(unsigned sec=0; sec < SecCount; sec++)
          {
-            for(r=0; r < FirstSpaceLen; r++)        // Первый пробел
+            for(r=0; r < FirstSpaceLen; r++)        // РџРµСЂРІС‹Р№ РїСЂРѕР±РµР»
             {
                FTracksPtr[trk][side][0][tptr] = 0x4E;
                FTracksPtr[trk][side][1][tptr++] = 0x00;
             }
-            for(r=0; r < SynchroSpaceLen; r++)        // Синхропромежуток
+            for(r=0; r < SynchroSpaceLen; r++)        // РЎРёРЅС…СЂРѕРїСЂРѕРјРµР¶СѓС‚РѕРє
             {
                FTracksPtr[trk][side][0][tptr] = 0x00;
                FTracksPtr[trk][side][1][tptr++] = 0x00;
             }
             ptrcrc = tptr;
-            for(r=0; r < SynchroPulseLen; r++)        // Синхроимпульс
+            for(r=0; r < SynchroPulseLen; r++)        // РЎРёРЅС…СЂРѕРёРјРїСѓР»СЊСЃ
             {
                FTracksPtr[trk][side][0][tptr] = 0xA1;
                FTracksPtr[trk][side][1][tptr++] = 0xFF;
             }
-            FTracksPtr[trk][side][0][tptr] = 0xFE;   // Метка "Адрес"
+            FTracksPtr[trk][side][0][tptr] = 0xFE;   // РњРµС‚РєР° "РђРґСЂРµСЃ"
             FTracksPtr[trk][side][1][tptr++] = 0x00;
 
             FTracksPtr[trk][side][0][tptr] = tracksinfo[trk*(MaxSide+1)+side].SectorsInfo[sec].ADAM[0]; // cyl
@@ -1232,12 +1232,12 @@ void TDiskImage::readFDI(int hfile, bool readonly)
             FTracksPtr[trk][side][0][tptr] = (unsigned char)(vgcrc&0xFF);
             FTracksPtr[trk][side][1][tptr++] = 0x00;
 
-            for(r=0; r < SecondSpaceLen; r++)        // Второй пробел
+            for(r=0; r < SecondSpaceLen; r++)        // Р’С‚РѕСЂРѕР№ РїСЂРѕР±РµР»
             {
                FTracksPtr[trk][side][0][tptr] = 0x4E;
                FTracksPtr[trk][side][1][tptr++] = 0x00;
             }
-            for(r=0; r < SynchroSpaceLen; r++)        // Синхропромежуток
+            for(r=0; r < SynchroSpaceLen; r++)        // РЎРёРЅС…СЂРѕРїСЂРѕРјРµР¶СѓС‚РѕРє
             {
                FTracksPtr[trk][side][0][tptr] = 0x00;
                FTracksPtr[trk][side][1][tptr++] = 0x00;
@@ -1249,23 +1249,23 @@ void TDiskImage::readFDI(int hfile, bool readonly)
 // !WARNING! this feature of FDI format is NOT FULL DOCUMENTED!!!
 // !!!!!!!!!
 //
-//  Flags::bit6 - Возможно, 1 в данном разряде
-//                будет обозначать адресный маркер без области данных.
+//  Flags::bit6 - Р’РѕР·РјРѕР¶РЅРѕ, 1 РІ РґР°РЅРЅРѕРј СЂР°Р·СЂСЏРґРµ
+//                Р±СѓРґРµС‚ РѕР±РѕР·РЅР°С‡Р°С‚СЊ Р°РґСЂРµСЃРЅС‹Р№ РјР°СЂРєРµСЂ Р±РµР· РѕР±Р»Р°СЃС‚Рё РґР°РЅРЅС‹С….
 //
 
             if(!(fdiSectorFlags & 0x40)) // oh-oh, data area not present... ;-) 
             {
                ptrcrc = tptr;
-               for(r=0; r < SynchroPulseLen; r++)        // Синхроимпульс
+               for(r=0; r < SynchroPulseLen; r++)        // РЎРёРЅС…СЂРѕРёРјРїСѓР»СЊСЃ
                {
                   FTracksPtr[trk][side][0][tptr] = 0xA1;
                   FTracksPtr[trk][side][1][tptr++] = 0xFF;
                }
    
                if(fdiSectorFlags & 0x80)
-                  FTracksPtr[trk][side][0][tptr] = 0xF8;   // Метка "Удаленные данные"
+                  FTracksPtr[trk][side][0][tptr] = 0xF8;   // РњРµС‚РєР° "РЈРґР°Р»РµРЅРЅС‹Рµ РґР°РЅРЅС‹Рµ"
                else
-                  FTracksPtr[trk][side][0][tptr] = 0xFB;   // Метка "Данные"
+                  FTracksPtr[trk][side][0][tptr] = 0xFB;   // РњРµС‚РєР° "Р”Р°РЅРЅС‹Рµ"
                FTracksPtr[trk][side][1][tptr++] = 0x00;
    
    
@@ -1275,7 +1275,7 @@ void TDiskImage::readFDI(int hfile, bool readonly)
    
                unsigned int secDATAOFF = fdiOFFdata + tracksinfo[trk*(MaxSide+1)+side].DataOffset + tracksinfo[trk*(MaxSide+1)+side].SectorsInfo[sec].SectorOffset;
    
-               for(r=0; r < SL; r++)        // сектор SL байт
+               for(r=0; r < SL; r++)        // СЃРµРєС‚РѕСЂ SL Р±Р°Р№С‚
                {
                   FTracksPtr[trk][side][0][tptr] = ptr[secDATAOFF+r];
                   FTracksPtr[trk][side][1][tptr++] = 0x00;
@@ -1301,7 +1301,7 @@ void TDiskImage::readFDI(int hfile, bool readonly)
             }
 
 
-            for(r=0; r < ThirdSpaceLen; r++)        // Третий пробел
+            for(r=0; r < ThirdSpaceLen; r++)        // РўСЂРµС‚РёР№ РїСЂРѕР±РµР»
             {
                FTracksPtr[trk][side][0][tptr] = 0x4E;
                FTracksPtr[trk][side][1][tptr++] = 0x00;
@@ -1314,7 +1314,7 @@ void TDiskImage::readFDI(int hfile, bool readonly)
          }
       }
 
-   delete tracksinfo;
+   delete[] tracksinfo;
    delete ptr;
    ReadOnly = readonly;
    FType = DIT_FDI;
@@ -1345,7 +1345,7 @@ void TDiskImage::writeFDI(int hfile)
       {
          *((uint32_t*)(ptr+fdiOFF)) = trackOFF;
          fdiOFF += 4;
-         *((uint16_t*)(ptr+fdiOFF)) = 0;  // Всегда содержит 0 (резерв)
+         *((uint16_t*)(ptr+fdiOFF)) = 0;  // Р’СЃРµРіРґР° СЃРѕРґРµСЂР¶РёС‚ 0 (СЂРµР·РµСЂРІ)
          fdiOFF += 2;
          htrkSectorCount = ptr+fdiOFF;
          fdiOFF++;
@@ -1474,7 +1474,7 @@ void TDiskImage::readFDD(int hfile, bool readonly)
    MaxSide = MaxH;
 
 
-// форматирование нового диска и размещение FDD секторов...
+// С„РѕСЂРјР°С‚РёСЂРѕРІР°РЅРёРµ РЅРѕРІРѕРіРѕ РґРёСЃРєР° Рё СЂР°Р·РјРµС‰РµРЅРёРµ FDD СЃРµРєС‚РѕСЂРѕРІ...
    unsigned int ptrcrc;
    unsigned int r;
    unsigned short vgcrc;
@@ -1553,7 +1553,7 @@ void TDiskImage::readFDD(int hfile, bool readonly)
 
 
 
-// Вычисляем необходимое число байт под данные:
+// Р’С‹С‡РёСЃР»СЏРµРј РЅРµРѕР±С…РѕРґРёРјРѕРµ С‡РёСЃР»Рѕ Р±Р°Р№С‚ РїРѕРґ РґР°РЅРЅС‹Рµ:
          trkdatalen = 0;
          for(unsigned int ilsec=0; ilsec < SecCount; ilsec++)
          {
@@ -1585,14 +1585,14 @@ void TDiskImage::readFDD(int hfile, bool readonly)
 
          unsigned int FreeSpace = 6250 - (trkdatalen + SecCount*(3+2));
 
-         unsigned int SynchroPulseLen = 1; // 1 уже учтен в trkdatalen...
+         unsigned int SynchroPulseLen = 1; // 1 СѓР¶Рµ СѓС‡С‚РµРЅ РІ trkdatalen...
          unsigned int FirstSpaceLen = 1;
          unsigned int SecondSpaceLen = 1;
          unsigned int ThirdSpaceLen = 1;
          unsigned int SynchroSpaceLen = 1;
          FreeSpace -= FirstSpaceLen+SecondSpaceLen+ThirdSpaceLen+SynchroSpaceLen;
 
-// Распределяем длины пробелов и синхропромежутка:
+// Р Р°СЃРїСЂРµРґРµР»СЏРµРј РґР»РёРЅС‹ РїСЂРѕР±РµР»РѕРІ Рё СЃРёРЅС…СЂРѕРїСЂРѕРјРµР¶СѓС‚РєР°:
          while(FreeSpace > 0)
          {
             if(FreeSpace>=(SecCount*2)) 
@@ -1608,32 +1608,32 @@ void TDiskImage::readFDD(int hfile, bool readonly)
 
             if((SynchroSpaceLen>=12)&&(FirstSpaceLen>=10)&&(SecondSpaceLen>=22)&&(ThirdSpaceLen>=60)) break;
          };
-// по возможности делаем три синхроимпульса...
+// РїРѕ РІРѕР·РјРѕР¶РЅРѕСЃС‚Рё РґРµР»Р°РµРј С‚СЂРё СЃРёРЅС…СЂРѕРёРјРїСѓР»СЊСЃР°...
          if(FreeSpace > (SecCount*2)+10) { SynchroPulseLen++; FreeSpace-=SecCount; }
          if(FreeSpace > (SecCount*2)+9) SynchroPulseLen++; 
 
-// Форматируем дорожку...
+// Р¤РѕСЂРјР°С‚РёСЂСѓРµРј РґРѕСЂРѕР¶РєСѓ...
 
          unsigned int tptr=0;
          for(unsigned sec=0; sec < SecCount; sec++)
          {
-            for(r=0; r < FirstSpaceLen; r++)        // Первый пробел
+            for(r=0; r < FirstSpaceLen; r++)        // РџРµСЂРІС‹Р№ РїСЂРѕР±РµР»
             {
                FTracksPtr[trk][side][0][tptr] = 0x4E;
                FTracksPtr[trk][side][1][tptr++] = 0x00;
             }
-            for(r=0; r < SynchroSpaceLen; r++)        // Синхропромежуток
+            for(r=0; r < SynchroSpaceLen; r++)        // РЎРёРЅС…СЂРѕРїСЂРѕРјРµР¶СѓС‚РѕРє
             {
                FTracksPtr[trk][side][0][tptr] = 0x00;
                FTracksPtr[trk][side][1][tptr++] = 0x00;
             }
             ptrcrc = tptr;
-            for(r=0; r < SynchroPulseLen; r++)        // Синхроимпульс
+            for(r=0; r < SynchroPulseLen; r++)        // РЎРёРЅС…СЂРѕРёРјРїСѓР»СЊСЃ
             {
                FTracksPtr[trk][side][0][tptr] = 0xA1;
                FTracksPtr[trk][side][1][tptr++] = 0xFF;
             }
-            FTracksPtr[trk][side][0][tptr] = 0xFE;   // Метка "Адрес"
+            FTracksPtr[trk][side][0][tptr] = 0xFE;   // РњРµС‚РєР° "РђРґСЂРµСЃ"
             FTracksPtr[trk][side][1][tptr++] = 0x00;
 
             FTracksPtr[trk][side][0][tptr] = trackinfo->sect[sec].trk;  // cyl
@@ -1651,12 +1651,12 @@ void TDiskImage::readFDD(int hfile, bool readonly)
             FTracksPtr[trk][side][0][tptr] = (unsigned char)(vgcrc&0xFF);
             FTracksPtr[trk][side][1][tptr++] = 0x00;
 
-            for(r=0; r < SecondSpaceLen; r++)        // Второй пробел
+            for(r=0; r < SecondSpaceLen; r++)        // Р’С‚РѕСЂРѕР№ РїСЂРѕР±РµР»
             {
                FTracksPtr[trk][side][0][tptr] = 0x4E;
                FTracksPtr[trk][side][1][tptr++] = 0x00;
             }
-            for(r=0; r < SynchroSpaceLen; r++)        // Синхропромежуток
+            for(r=0; r < SynchroSpaceLen; r++)        // РЎРёРЅС…СЂРѕРїСЂРѕРјРµР¶СѓС‚РѕРє
             {
                FTracksPtr[trk][side][0][tptr] = 0x00;
                FTracksPtr[trk][side][1][tptr++] = 0x00;
@@ -1665,13 +1665,13 @@ void TDiskImage::readFDD(int hfile, bool readonly)
 
 // DATA AM
             ptrcrc = tptr;
-            for(r=0; r < SynchroPulseLen; r++)        // Синхроимпульс
+            for(r=0; r < SynchroPulseLen; r++)        // РЎРёРЅС…СЂРѕРёРјРїСѓР»СЊСЃ
             {
                FTracksPtr[trk][side][0][tptr] = 0xA1;
                FTracksPtr[trk][side][1][tptr++] = 0xFF;
             }
    
-            FTracksPtr[trk][side][0][tptr] = 0xFB;   // Метка "Данные"
+            FTracksPtr[trk][side][0][tptr] = 0xFB;   // РњРµС‚РєР° "Р”Р°РЅРЅС‹Рµ"
             FTracksPtr[trk][side][1][tptr++] = 0x00;
 
 
@@ -1681,7 +1681,7 @@ void TDiskImage::readFDD(int hfile, bool readonly)
 
             unsigned int secDATAOFF = trackinfo->sect[sec].SectPos;
 
-            for(r=0; r < SL; r++)        // сектор SL байт
+            for(r=0; r < SL; r++)        // СЃРµРєС‚РѕСЂ SL Р±Р°Р№С‚
             {
                FTracksPtr[trk][side][0][tptr] = ptr[secDATAOFF+r];
                FTracksPtr[trk][side][1][tptr++] = 0x00;
@@ -1696,7 +1696,7 @@ void TDiskImage::readFDD(int hfile, bool readonly)
             FTracksPtr[trk][side][1][tptr++] = 0x00;
 
 
-            for(r=0; r < ThirdSpaceLen; r++)        // Третий пробел
+            for(r=0; r < ThirdSpaceLen; r++)        // РўСЂРµС‚РёР№ РїСЂРѕР±РµР»
             {
                FTracksPtr[trk][side][0][tptr] = 0x4E;
                FTracksPtr[trk][side][1][tptr++] = 0x00;
@@ -2145,7 +2145,7 @@ void TDiskImage::readHOB(int hfile)
    uint16_t CRC=0;
    for(i=0; i < 15; i++) CRC = CRC + ptr[i];
    CRC *= 257;
-   CRC += 105;          // сумма чисел от 0 до 14
+   CRC += 105;          // СЃСѓРјРјР° С‡РёСЃРµР» РѕС‚ 0 РґРѕ 14
 
    if(CRC != hobRealCRC)
       ShowError(ERR_FILECRC" HOBETA!");
@@ -2162,7 +2162,7 @@ void TDiskImage::readHOB(int hfile)
    }
 
 // --- read file...
-   dired.SecLen = ptr[0x0E];            // число секторов файла
+   dired.SecLen = ptr[0x0E];            // С‡РёСЃР»Рѕ СЃРµРєС‚РѕСЂРѕРІ С„Р°Р№Р»Р°
 
    VGFIND_SECTOR vgfs9;
    if(!FindSector(0, 0, 9, &vgfs9)) { delete ptr; return; }
@@ -2320,7 +2320,7 @@ void TDiskImage::readTD0(int hfile, bool readonly)
 
       unsigned int tmpOFF = tdOFF;
 
-// Вычисляем необходимое число байт под данные:
+// Р’С‹С‡РёСЃР»СЏРµРј РЅРµРѕР±С…РѕРґРёРјРѕРµ С‡РёСЃР»Рѕ Р±Р°Р№С‚ РїРѕРґ РґР°РЅРЅС‹Рµ:
       unsigned int trkdatalen = 0;
       unsigned int SL;
       for(unsigned int ilsec=0; ilsec < SecCount; ilsec++)
@@ -2337,7 +2337,7 @@ void TDiskImage::readTD0(int hfile, bool readonly)
          trkdatalen += SL;
       }
 
-// проверка на возможность формата...
+// РїСЂРѕРІРµСЂРєР° РЅР° РІРѕР·РјРѕР¶РЅРѕСЃС‚СЊ С„РѕСЂРјР°С‚Р°...
       if(trkdatalen + SecCount*(3+2) > 6250)    // 3x4E & 2x00 per sec checking
       {
          delete ptr;
@@ -2356,14 +2356,14 @@ void TDiskImage::readTD0(int hfile, bool readonly)
 
       unsigned int FreeSpace = 6250 - (trkdatalen + SecCount*(3+2));
 
-      unsigned int SynchroPulseLen = 1; // 1 уже учтен в trkdatalen...
+      unsigned int SynchroPulseLen = 1; // 1 СѓР¶Рµ СѓС‡С‚РµРЅ РІ trkdatalen...
       unsigned int FirstSpaceLen = 1;
       unsigned int SecondSpaceLen = 1;
       unsigned int ThirdSpaceLen = 1;
       unsigned int SynchroSpaceLen = 1;
       FreeSpace -= FirstSpaceLen+SecondSpaceLen+ThirdSpaceLen+SynchroSpaceLen;
 
-// Распределяем длины пробелов и синхропромежутка:
+// Р Р°СЃРїСЂРµРґРµР»СЏРµРј РґР»РёРЅС‹ РїСЂРѕР±РµР»РѕРІ Рё СЃРёРЅС…СЂРѕРїСЂРѕРјРµР¶СѓС‚РєР°:
       while(FreeSpace > 0)
       {
          if(FreeSpace>=(SecCount*2)) 
@@ -2379,11 +2379,11 @@ void TDiskImage::readTD0(int hfile, bool readonly)
 
          if((SynchroSpaceLen>=12)&&(FirstSpaceLen>=10)&&(SecondSpaceLen>=22)&&(ThirdSpaceLen>=60)) break;
       };
-// по возможности делаем три синхроимпульса...
+// РїРѕ РІРѕР·РјРѕР¶РЅРѕСЃС‚Рё РґРµР»Р°РµРј С‚СЂРё СЃРёРЅС…СЂРѕРёРјРїСѓР»СЊСЃР°...
       if(FreeSpace > (SecCount*2)+10) { SynchroPulseLen++; FreeSpace-=SecCount; }
       if(FreeSpace > (SecCount*2)+9) SynchroPulseLen++; 
 
-// Форматируем дорожку...
+// Р¤РѕСЂРјР°С‚РёСЂСѓРµРј РґРѕСЂРѕР¶РєСѓ...
 
       unsigned int tptr=0;
       unsigned int ptrcrc;
@@ -2394,23 +2394,23 @@ void TDiskImage::readTD0(int hfile, bool readonly)
          tdsect = (TD0_SECT_HEADER*)(ptr+tdOFF); 
          tdOFF += sizeof(TD0_SECT_HEADER)+1;
 
-         for(r=0; r < FirstSpaceLen; r++)        // Первый пробел
+         for(r=0; r < FirstSpaceLen; r++)        // РџРµСЂРІС‹Р№ РїСЂРѕР±РµР»
          {
             FTracksPtr[trk][side][0][tptr] = 0x4E;
             FTracksPtr[trk][side][1][tptr++] = 0x00;
          }
-         for(r=0; r < SynchroSpaceLen; r++)        // Синхропромежуток
+         for(r=0; r < SynchroSpaceLen; r++)        // РЎРёРЅС…СЂРѕРїСЂРѕРјРµР¶СѓС‚РѕРє
          {
             FTracksPtr[trk][side][0][tptr] = 0x00;
             FTracksPtr[trk][side][1][tptr++] = 0x00;
          }
          ptrcrc = tptr;
-         for(r=0; r < SynchroPulseLen; r++)        // Синхроимпульс
+         for(r=0; r < SynchroPulseLen; r++)        // РЎРёРЅС…СЂРѕРёРјРїСѓР»СЊСЃ
          {
             FTracksPtr[trk][side][0][tptr] = 0xA1;
             FTracksPtr[trk][side][1][tptr++] = 0xFF;
          }
-         FTracksPtr[trk][side][0][tptr] = 0xFE;   // Метка "Адрес"
+         FTracksPtr[trk][side][0][tptr] = 0xFE;   // РњРµС‚РєР° "РђРґСЂРµСЃ"
          FTracksPtr[trk][side][1][tptr++] = 0x00;
 
          FTracksPtr[trk][side][0][tptr] = tdsect->ADRM[0]; // cyl
@@ -2428,12 +2428,12 @@ void TDiskImage::readTD0(int hfile, bool readonly)
          FTracksPtr[trk][side][0][tptr] = (unsigned char)(vgcrc&0xFF);
          FTracksPtr[trk][side][1][tptr++] = 0x00;
 
-         for(r=0; r < SecondSpaceLen; r++)        // Второй пробел
+         for(r=0; r < SecondSpaceLen; r++)        // Р’С‚РѕСЂРѕР№ РїСЂРѕР±РµР»
          {
             FTracksPtr[trk][side][0][tptr] = 0x4E;
             FTracksPtr[trk][side][1][tptr++] = 0x00;
          }
-         for(r=0; r < SynchroSpaceLen; r++)        // Синхропромежуток
+         for(r=0; r < SynchroSpaceLen; r++)        // РЎРёРЅС…СЂРѕРїСЂРѕРјРµР¶СѓС‚РѕРє
          {
             FTracksPtr[trk][side][0][tptr] = 0x00;
             FTracksPtr[trk][side][1][tptr++] = 0x00;
@@ -2442,13 +2442,13 @@ void TDiskImage::readTD0(int hfile, bool readonly)
          if(tdsect->DataLength-1) // oh-oh, data area not present... ;-) 
          {
             ptrcrc = tptr;
-            for(r=0; r < SynchroPulseLen; r++)        // Синхроимпульс
+            for(r=0; r < SynchroPulseLen; r++)        // РЎРёРЅС…СЂРѕРёРјРїСѓР»СЊСЃ
             {
                FTracksPtr[trk][side][0][tptr] = 0xA1;
                FTracksPtr[trk][side][1][tptr++] = 0xFF;
             }
 
-            FTracksPtr[trk][side][0][tptr] = 0xFB;   // Метка "Данные"
+            FTracksPtr[trk][side][0][tptr] = 0xFB;   // РњРµС‚РєР° "Р”Р°РЅРЅС‹Рµ"
             FTracksPtr[trk][side][1][tptr++] = 0x00;
 
 //            SL = unsigned(tdsect->ADRM[3]);
@@ -2456,7 +2456,7 @@ void TDiskImage::readTD0(int hfile, bool readonly)
 //            else SL = 128 << SL;
             SL = tdsect->DataLength-1;
 
-            for(r=0; r < SL; r++)        // сектор SL байт
+            for(r=0; r < SL; r++)        // СЃРµРєС‚РѕСЂ SL Р±Р°Р№С‚
             {
                FTracksPtr[trk][side][0][tptr] = ptr[tdOFF+r];
                FTracksPtr[trk][side][1][tptr++] = 0x00;
@@ -2472,7 +2472,7 @@ void TDiskImage::readTD0(int hfile, bool readonly)
             FTracksPtr[trk][side][1][tptr++] = 0x00;
          }
 
-         for(r=0; r < ThirdSpaceLen; r++)        // Третий пробел
+         for(r=0; r < ThirdSpaceLen; r++)        // РўСЂРµС‚РёР№ РїСЂРѕР±РµР»
          {
             FTracksPtr[trk][side][0][tptr] = 0x4E;
             FTracksPtr[trk][side][1][tptr++] = 0x00;
